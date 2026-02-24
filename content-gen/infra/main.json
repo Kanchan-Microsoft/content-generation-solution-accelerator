@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "17859888936568987083"
+      "templateHash": "315804383926522486"
     },
     "name": "Intelligent Content Generation Accelerator",
     "description": "Solution Accelerator for multimodal marketing content generation using Microsoft Agent Framework.\n"
@@ -321,7 +321,6 @@
     "imageModelDeployment": "[if(not(equals(parameters('imageModelChoice'), 'none')), createArray(createObject('format', 'OpenAI', 'name', variables('imageModelConfig')[parameters('imageModelChoice')].name, 'model', variables('imageModelConfig')[parameters('imageModelChoice')].name, 'sku', createObject('name', variables('imageModelConfig')[parameters('imageModelChoice')].sku, 'capacity', parameters('imageModelCapacity')), 'version', variables('imageModelConfig')[parameters('imageModelChoice')].version, 'raiPolicyName', 'Microsoft.Default')), createArray())]",
     "aiFoundryAiServicesModelDeployment": "[concat(variables('baseModelDeployments'), variables('imageModelDeployment'))]",
     "aiFoundryAiProjectDescription": "Content Generation AI Foundry Project",
-    "existingTags": "[coalesce(resourceGroup().tags, createObject())]",
     "logAnalyticsWorkspaceResourceName": "[format('log-{0}', variables('solutionSuffix'))]",
     "applicationInsightsResourceName": "[format('appi-{0}', variables('solutionSuffix'))]",
     "userAssignedIdentityResourceName": "[format('id-{0}', variables('solutionSuffix'))]",
@@ -353,6 +352,13 @@
     "containerInstanceName": "[format('aci-{0}', variables('solutionSuffix'))]"
   },
   "resources": {
+    "existingResourceGroup": {
+      "existing": true,
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "subscriptionId": "[subscription().subscriptionId]",
+      "name": "[resourceGroup().name]"
+    },
     "avmTelemetry": {
       "condition": "[parameters('enableTelemetry')]",
       "type": "Microsoft.Resources/deployments",
@@ -378,8 +384,11 @@
       "apiVersion": "2025-04-01",
       "name": "default",
       "properties": {
-        "tags": "[union(variables('existingTags'), parameters('tags'), createObject('TemplateName', 'ContentGen', 'Type', if(parameters('enablePrivateNetworking'), 'WAF', 'Non-WAF'), 'CreatedBy', parameters('createdBy')))]"
-      }
+        "tags": "[union(coalesce(reference('existingResourceGroup', '2024-03-01', 'full').tags, createObject()), parameters('tags'), createObject('TemplateName', 'ContentGen', 'Type', if(parameters('enablePrivateNetworking'), 'WAF', 'Non-WAF'), 'CreatedBy', parameters('createdBy')))]"
+      },
+      "dependsOn": [
+        "existingResourceGroup"
+      ]
     },
     "aiSearchFoundryConnection": {
       "condition": "[not(variables('useExistingAiFoundryAiProject'))]",
@@ -16410,7 +16419,7 @@
           "networkAcls": {
             "value": {
               "bypass": "AzureServices",
-              "defaultAction": "Deny"
+              "defaultAction": "[if(parameters('enablePrivateNetworking'), 'Deny', 'Allow')]"
             }
           },
           "allowBlobPublicAccess": {
