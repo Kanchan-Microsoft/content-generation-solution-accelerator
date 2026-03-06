@@ -31,6 +31,18 @@ jobs:
             fi
           done
 
+          # Copy ISSUE_TEMPLATE folder into content-gen/.github/
+          if [ -d ".github/ISSUE_TEMPLATE" ] && [ ! -d "content-gen/.github/ISSUE_TEMPLATE" ]; then
+            mkdir -p content-gen/.github/ISSUE_TEMPLATE
+            cp -r .github/ISSUE_TEMPLATE/* content-gen/.github/ISSUE_TEMPLATE/
+          fi
+
+          # Copy azure-dev.yml workflow into content-gen/.github/workflows/
+          if [ -f ".github/workflows/azure-dev.yml" ] && [ ! -f "content-gen/.github/workflows/azure-dev.yml" ]; then
+            mkdir -p content-gen/.github/workflows
+            cp .github/workflows/azure-dev.yml content-gen/.github/workflows/azure-dev.yml
+          fi
+
       # Step 3: Validate the Azure template using microsoft/template-validation-action
       - name: Validate Azure Template
         uses: microsoft/template-validation-action@v0.4.3
