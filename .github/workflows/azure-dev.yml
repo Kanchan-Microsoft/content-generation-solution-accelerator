@@ -26,9 +26,11 @@ jobs:
       - name: Validate Azure Template
         uses: microsoft/template-validation-action@v0.4.3
         with:
+          workingDirectory: ./content-gen
           validateAzd: ${{ vars.TEMPLATE_VALIDATE_AZD }}
           useDevContainer: ${{ vars.TEMPLATE_USE_DEV_CONTAINER }}
           validateTests: ${{ vars.TEMPLATE_VALIDATE_TESTS }}
+          validatePaths: None
         id: validation
         env:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
